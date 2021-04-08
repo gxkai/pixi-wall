@@ -14,12 +14,14 @@
     "lint": "just lint"
   },
   "dependencies": {
+    "howler": "^2.2.1",
     "pixi.js": "^5.0.4"
   },
   "keywords": [
     "wall"
   ],
   "devDependencies": {
+    "@types/howler": "^2.2.2",
     "@typescript-eslint/eslint-plugin": "^4.21.0",
     "@typescript-eslint/parser": "^4.21.0",
     "copy-webpack-plugin": "^8.1.1",

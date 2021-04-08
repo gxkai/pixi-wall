@@ -1,7 +1,17 @@
 import * as PIXI from 'pixi.js';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, EventEmitter } from './constants';
 import Coin from './coin';
+import {Howl} from 'howler';
+import getHowlSound from './utils/getHowlerSound';
+function checkCollision(object1, object2) {
+	const bounds1 = object1.getBounds();
+	const bounds2 = object2.getBounds();
 
+	return bounds1.x < bounds2.x + bounds2.width
+		&& bounds1.x + bounds1.width > bounds2.x
+		&& bounds1.y < bounds2.y + bounds2.height
+		&& bounds1.y + bounds1.height > bounds2.y;
+}
 class Wall extends PIXI.utils.EventEmitter{
   private container = new PIXI.Container();
   private pipeUp = new PIXI.Sprite(PIXI.Texture.from('pipeUp.png'));
@@ -14,105 +24,115 @@ class Wall extends PIXI.utils.EventEmitter{
   private innerDistance = 65;
   private passed = false;
   private collisionCount = 0;
-  private _outScreen = false;
-  public constructor(stage: PIXI.Container) {
-  	super();
-  	stage.addChild(this.container);
-  	this.reset();
-  }
+private dieSound: Howl = getHowlSound('sfx_die.wav', );
+private hitSound: Howl = getHowlSound('sfx_hit.wav', );
+public constructor(stage: PIXI.Container) {
+	super();
+	stage.addChild(this.container);
+	this.reset();
+}
 
-  public update(): void {
-  	this.x -= this.speedX;
-  	if (this.x < -this.container.width) this.reset();
-  	const { x, y, wallWidth,innerDistance } = this;
-  	this.pipeUp.position.x = x;
-  	this.pipeUp.position.y = 0;
-  	this.pipeUp.height = y;
-  	this.pipeUp.width = wallWidth;
-  	this.container.addChild(this.pipeUp);
-  	this.pipeDown.position.x = x;
-  	this.pipeDown.position.y = y + innerDistance;
-  	this.pipeDown.height = CANVAS_HEIGHT - y - innerDistance;
-  	this.pipeDown.width = wallWidth;
-  	this.container.addChild(this.pipeDown);
+public update(): void {
+	this.x -= this.speedX;
+	if (this.x < -this.container.width) this.reset();
+	const { x, y, wallWidth,innerDistance } = this;
+	this.pipeUp.position.x = x;
+	this.pipeUp.position.y = 0;
+	this.pipeUp.height = y;
+	this.pipeUp.width = wallWidth;
+	this.container.addChild(this.pipeUp);
+	this.pipeDown.position.x = x;
+	this.pipeDown.position.y = y + innerDistance;
+	this.pipeDown.height = CANVAS_HEIGHT - y - innerDistance;
+	this.pipeDown.width = wallWidth;
+	this.container.addChild(this.pipeDown);
 
-  	this.coins.forEach(_ => {
-  		_.position.x = x + _.offsetX;
-  		this.container.addChild(_);
-  	});
-  }
+	this.coins.forEach(_ => {
+		_.position.x = x + _.offsetX;
+		this.container.addChild(_);
+	});
+}
 
-  public reset(): void {
-  	this.passed = false;
-  	this.collisionCount = 0;
-  	this.container.removeChildren();
-  	this.x = CANVAS_WIDTH + 20;
+public reset(): void {
+	this.passed = false;
+	this.collisionCount = 0;
+	this.container.removeChildren();
+	this.x = CANVAS_WIDTH + 20;
 
-  	const wallMinHeight = 20;
-  	const randomNum =
-      Math.random() * (CANVAS_HEIGHT - 2 * wallMinHeight - this.innerDistance);
-  	this.y = wallMinHeight + randomNum;
+	const wallMinHeight = 20;
+	const randomNum =
+    Math.random() * (CANVAS_HEIGHT - 2 * wallMinHeight - this.innerDistance);
+	this.y = wallMinHeight + randomNum;
 
-  	this.coins = [];
-  	for (let i=0; i< 5; i++) {
-  		const s = new Coin((i+ 1) * 80);
-  		this.coins.push(s);
-  	}
-  }
+	this.coins = [];
+	for (let i=0; i< 25; i++) {
+		const s = new Coin((i+ 1) * 80);
+		this.coins.push(s);
+	}
+}
+public checkCoinCollision(
+	player: PIXI.Sprite
+): void {
+	for (const [i, v] of this.coins.entries()) {
+		if (checkCollision(player, v)) {
+			this.coins.splice(i, 1);
+			v.destroy();
+			this.emit(EventEmitter.COIN_COLLISION, v.score);
+			break;
+		}
+	}
+}
 
-  public checkCollision(
-  	x: number,
-  	y: number,
-  	width: number,
-  	height: number
-  ): void {
-  	const x1 = x - width / 2;
-  	const y1 = y - height / 2;
-  	let flag = false;
-  	if (!(x1 + width < this.x || this.x + this.wallWidth < x1 || this.y < y1)) {
-  		flag = true;
-  	}
-  	if (!(
-  		x1 + width < this.x ||
-		this.x + this.wallWidth < x1 ||
-		y1 + height < this.y + this.innerDistance
-  	)) {
-  		flag = true;
-  	}
-  	if (y < -height / 2 || y > CANVAS_HEIGHT + height / 2) {
-  		flag = true;
-  		this._outScreen = true;
-  	} else {
-  		this._outScreen = false;
-  	}
-  	if (flag) {
-  		if (this.collisionCount === 0) {
-  			this.emit(EventEmitter.PASS_COLLISION);
-  		}
-  		this.collisionCount ++;
-  	}
-  }
-  public checkPassed(
-  	x: number,
-  	y: number,
-  	width: number,
-  	height: number
-  ): void {
-  	if (this.collisionCount > 0) {
-  		return;
-  	}
-  	if (this.x + this.wallWidth < x - width/2 && !this.passed) {
-  		this.collisionCount = 0;
-  		this.passed = true;
-  		this.emit(EventEmitter.PASS_THROUGH);
-  	}
-  }
-  public get outScreen() {
-  	return this._outScreen;
-  }
-  public changeSpeed(val: number) {
-  	this.speedX = 2 * 1.5 ** val;
-  }
+public checkPipeCollision(
+	x: number,
+	y: number,
+	width: number,
+	height: number
+): void {
+	const x1 = x - width / 2;
+	const y1 = y - height / 2;
+	let flag = false;
+	if (!(x1 + width < this.x || this.x + this.wallWidth < x1 || this.y < y1)) {
+		flag = true;
+	}
+	if (!(
+		x1 + width < this.x ||
+	this.x + this.wallWidth < x1 ||
+	y1 + height < this.y + this.innerDistance
+	)) {
+		flag = true;
+	}
+	if (y < -height / 2 || y > CANVAS_HEIGHT + height / 2) {
+		this.dieSound.play();
+		this.emit(EventEmitter.OUT_SCREEN);
+		return;
+	}
+	if (flag) {
+		if (this.collisionCount === 0) {
+			this.hitSound.play();
+			this.emit(EventEmitter.PASS_COLLISION);
+		}
+		this.collisionCount ++;
+	}
+}
+public checkPipePassed(
+	x: number,
+	y: number,
+	width: number,
+	height: number
+): void {
+	if (this.collisionCount > 0) {
+		return;
+	}
+	if (this.x + this.wallWidth < x - width/2 && !this.passed) {
+		this.collisionCount = 0;
+		this.passed = true;
+		this.emit(EventEmitter.PASS_THROUGH);
+	}
+}
+public changeSpeed(val: number) {
+	this.speedX = 2 * 1.5 ** val;
+}
 }
 
 export default Wall;

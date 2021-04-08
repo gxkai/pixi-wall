@@ -4,7 +4,8 @@ import Player from './player';
 import {CANVAS_WIDTH, CANVAS_HEIGHT, EventEmitter} from './constants';
 import Background from './background';
 import Statistics from './statistics';
-import Coin from './coin';
+import {Howl} from 'howler';
+import getHowlSound from './utils/getHowlerSound';
 (window as any) .PIXI = PIXI;
 const app = new PIXI.Application({
 	width: CANVAS_WIDTH,
@@ -26,6 +27,7 @@ class Game {
 
   private stage!: PIXI.Container;
   private ticker!: PIXI.Ticker;
+  private flySound: Howl = getHowlSound('sfx_wing.wav', {loop: true});
 
   public constructor() {
   	this.loadAssets().then(() => {
@@ -41,6 +43,12 @@ class Game {
   		});
   		this.wall.on(EventEmitter.PASS_COLLISION, () => {
   			this.onCollide();
+  		});
+  		this.wall.on(EventEmitter.OUT_SCREEN, () => {
+  			this.onOuScreen();
+  		});
+  		this.wall.on(EventEmitter.COIN_COLLISION, (score) => {
+  			this.statistics.plus(score);
   		});
   		this.statistics.on(EventEmitter.PASS_SPEED, () => {
   			this.onSpeed();
@@ -84,6 +92,7 @@ class Game {
   public start = (): void => {
   	this.ticker.start();
   	this.isPlaying = true;
+  	this.flySound.play();
   };
 
   public reset = (): void => {
@@ -91,15 +100,16 @@ class Game {
   	this.player.reset();
   };
 
+  private onOuScreen = (): void=> {
+  	this.statistics.clear();
+  	this.onCollide();
+  }
   private onCollide = (): void => {
-  	if (
-  		this.wall.outScreen
-  	) {
-  		this.statistics.clear();
-  	}
   	if (this.statistics.score === 0) {
   		this.ticker.stop();
   		this.isPlaying = false;
+  		this.wall.reset();
+  		this.flySound.stop();
   	} else {
   		this.statistics.minus();
   	}

@@ -34,8 +34,9 @@ class Player {
   	this.speedY += GRAVITY / 400;
   	this.sprite.y += this.speedY;
   	const { x, y, width, height } = this.sprite;
-  	this.wall.checkCollision(x, y, width, height);
-  	this.wall.checkPassed(x, y, width, height);
+  	this.wall.checkCoinCollision(this.sprite);
+  	this.wall.checkPipeCollision(x, y, width, height);
+  	this.wall.checkPipePassed(x, y, width, height);
   };
 
   public reset = (): void => {

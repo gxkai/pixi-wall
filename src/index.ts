@@ -1,8 +1,10 @@
 import * as PIXI from 'pixi.js';
 import Wall from './wall';
 import Player from './player';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from './constants';
+import {CANVAS_WIDTH, CANVAS_HEIGHT, EventEmitter} from './constants';
 import Background from './background';
+import Statistics from './statistics';
+import Coin from './coin';
 (window as any) .PIXI = PIXI;
 const app = new PIXI.Application({
 	width: CANVAS_WIDTH,
@@ -20,6 +22,7 @@ class Game {
 
   private player!: Player;
   private wall!: Wall;
+  private statistics!: Statistics;
 
   private stage!: PIXI.Container;
   private ticker!: PIXI.Ticker;
@@ -28,9 +31,20 @@ class Game {
   	this.loadAssets().then(() => {
   		this.stage = new PIXI.Container();
   		this.ticker = new PIXI.Ticker();
+  		this.ticker.maxFPS = 60;
   		this.ticker.autoStart = false;
   		this.wall = new Wall(this.stage);
-  		this.player = new Player(this.stage, this.wall, this.onCollide);
+  		this.player = new Player(this.stage, this.wall);
+  		this.statistics= new Statistics(this.stage);
+  		this.wall.on(EventEmitter.PASS_THROUGH, () => {
+  			this.onPassed();
+  		});
+  		this.wall.on(EventEmitter.PASS_COLLISION, () => {
+  			this.onCollide();
+  		});
+  		this.statistics.on(EventEmitter.PASS_SPEED, () => {
+  			this.onSpeed();
+  		});
 
   		this.init();
   	}).catch(() => {
@@ -64,6 +78,7 @@ class Game {
   private draw = (): void => {
   	this.wall.update();
   	this.player.update();
+  	this.statistics.update();
   };
 
   public start = (): void => {
@@ -77,9 +92,26 @@ class Game {
   };
 
   private onCollide = (): void => {
-  	this.ticker.stop();
-  	this.isPlaying = false;
+  	if (
+  		this.wall.outScreen
+  	) {
+  		this.statistics.clear();
+  	}
+  	if (this.statistics.score === 0) {
+  		this.ticker.stop();
+  		this.isPlaying = false;
+  	} else {
+  		this.statistics.minus();
+  	}
   };
+
+  private onPassed = (): void => {
+  	this.statistics.plus();
+  }
+
+  private onSpeed = (): void => {
+  	this.wall.changeSpeed( Math.floor(this.statistics.score / 10));
+  }
 }
 
 const game = new Game();

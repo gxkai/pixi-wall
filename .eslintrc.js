@@ -11,6 +11,9 @@ module.exports = {
 		'@typescript-eslint/indent': 0,
 		'@typescript-eslint/no-explicit-any': 0,
 		'@typescript-eslint/no-var-requires': 0,
+		'@typescript-eslint/no-empty-function': 0,
+		'@typescript-eslint/no-unused-vars': 0,
+		'@typescript-eslint/explicit-module-boundary-types': 0,
 		'no-mixed-spaces-and-tabs': 0,
 		'no-undef': 0
 	}

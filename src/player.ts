@@ -5,30 +5,27 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, GRAVITY } from './constants';
 class Player {
   private sprite = Player.bird;
   private speedY = 0;
-  private wall: Wall;
-  private readonly onCollide?: () => void;
+  private readonly wall: Wall;
 
   public constructor(
   	stage: PIXI.Container,
   	wall: Wall,
-  	onCollide?: () => void
   ) {
   	this.reset();
 
   	this.wall = wall;
-  	this.onCollide = onCollide;
 
   	this.sprite.pivot.set(this.sprite.width / 2, this.sprite.height / 2);
 
   	document.addEventListener('keydown', (event: KeyboardEvent): void => {
   		event.preventDefault();
   		if (event.key === ' ') {
-  			this.addSpeed(-GRAVITY / 5);
+  			this.addSpeed(-GRAVITY / 10);
   		}
   	});
   	document.addEventListener('mousedown', (event: MouseEvent): void => {
   		event.preventDefault();
-  		this.addSpeed(-GRAVITY / 5);
+  		this.addSpeed(-GRAVITY / 10);
   	});
   	stage.addChild(this.sprite);
   }
@@ -36,10 +33,9 @@ class Player {
   public update = (): void => {
   	this.speedY += GRAVITY / 400;
   	this.sprite.y += this.speedY;
-
-  	if (this.isCollide && this.onCollide) {
-  		this.onCollide();
-  	}
+  	const { x, y, width, height } = this.sprite;
+  	this.wall.checkCollision(x, y, width, height);
+  	this.wall.checkPassed(x, y, width, height);
   };
 
   public reset = (): void => {
@@ -63,13 +59,6 @@ class Player {
   private addSpeed(speed: number): void {
   	this.speedY += speed;
   	this.speedY = Math.max(-GRAVITY, this.speedY);
-  }
-
-  private get isCollide(): boolean {
-  	const { x, y, width, height } = this.sprite;
-  	if (this.wall.checkCollision(x - width / 2, y - height / 2, width, height))
-  		return true;
-  	return y < -height / 2 || y > CANVAS_HEIGHT + height / 2;
   }
 }
 

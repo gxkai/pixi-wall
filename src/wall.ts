@@ -119,7 +119,9 @@ public checkPipePassed(
 	}
 }
 public changeSpeed(val: number) {
-	this.speedX = 2 * 1.5 ** val;
+	if (val< 8) {
+		this.speedX = 2 * 1.5 ** val;
+	}
 }
 }
 

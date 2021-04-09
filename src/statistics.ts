@@ -35,7 +35,7 @@ class Statistics extends PIXI.utils.EventEmitter{
     	if (this._score >= 70) {
     		sourceName =  MEDALS[2];
     	}
-    	if (this._score >= 20 && this._score < 40) {
+    	if (this._score >= 20 && this._score < 70) {
     	    sourceName =  MEDALS[1];
     	}
     	if (this._score >= 0 && this._score < 20) {

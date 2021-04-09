@@ -1,7 +1,7 @@
 {
-  "name": "the-slip-through",
+  "name": "pixi-wall",
   "version": "0.0.1",
-  "description": "This is game who player slip through walls.",
+  "description": "bird wall game",
   "private": true,
   "license": "MIT",
   "main": "./dist/wall.js",
@@ -18,7 +18,10 @@
     "pixi.js": "^5.0.4"
   },
   "keywords": [
-    "wall"
+    "wall",
+    "pixi",
+    "bird",
+    "fly"
   ],
   "devDependencies": {
     "@types/howler": "^2.2.2",

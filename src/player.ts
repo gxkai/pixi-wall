@@ -19,9 +19,7 @@ class Player {
 
   	document.addEventListener('keydown', (event: KeyboardEvent): void => {
   		event.preventDefault();
-  		if (event.key === ' ') {
-  			this.addSpeed(-GRAVITY / 10);
-  		}
+  		this.addSpeed(-GRAVITY / 10);
   	});
   	document.addEventListener('mousedown', (event: MouseEvent): void => {
   		event.preventDefault();
@@ -33,10 +31,9 @@ class Player {
   public update = (): void => {
   	this.speedY += GRAVITY / 400;
   	this.sprite.y += this.speedY;
-  	const { x, y, width, height } = this.sprite;
   	this.wall.checkCoinCollision(this.sprite);
-  	this.wall.checkPipeCollision(x, y, width, height);
-  	this.wall.checkPipePassed(x, y, width, height);
+  	this.wall.checkPipeCollision(this.sprite);
+  	this.wall.checkPipePassed(this.sprite);
   };
 
   public reset = (): void => {

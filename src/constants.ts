@@ -7,6 +7,8 @@ export enum EventEmitter {
     PASS_COLLISION= 'PASS_COLLISION',
     PASS_SPEED= 'PASS_SPEED',
     OUT_SCREEN= 'OUT_SCREEN',
-    COIN_COLLISION = 'COIN_COLLISION'
+    COIN_COLLISION = 'COIN_COLLISION',
+    TIME_OUT = 'TIME_OUT'
 }
 export const MEDALS = ['silverMedal', 'goldMedal', 'bronzeMedal'];
+export const TIME_COUNT = 120;

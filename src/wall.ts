@@ -34,7 +34,6 @@ public constructor(stage: PIXI.Container) {
 
 public update(): void {
 	this.x -= this.speedX;
-	if (this.x < -this.container.width) this.reset();
 	const { x, y, wallWidth,innerDistance } = this;
 	this.pipeUp.position.x = x;
 	this.pipeUp.position.y = 0;
@@ -51,6 +50,8 @@ public update(): void {
 		_.position.x = x + _.offsetX;
 		this.container.addChild(_);
 	});
+	console.log(this.container.width);
+	if (this.x < -this.container.width) this.reset();
 }
 
 public reset(): void {
@@ -65,7 +66,7 @@ public reset(): void {
 	this.y = wallMinHeight + randomNum;
 
 	this.coins = [];
-	for (let i=0; i< 25; i++) {
+	for (let i=0; i< 20; i++) {
 		const s = new Coin((i+ 1) * 80);
 		this.coins.push(s);
 	}
@@ -84,22 +85,11 @@ public checkCoinCollision(
 }
 
 public checkPipeCollision(
-	x: number,
-	y: number,
-	width: number,
-	height: number
+	player: PIXI.Sprite
 ): void {
-	const x1 = x - width / 2;
-	const y1 = y - height / 2;
 	let flag = false;
-	if (!(x1 + width < this.x || this.x + this.wallWidth < x1 || this.y < y1)) {
-		flag = true;
-	}
-	if (!(
-		x1 + width < this.x ||
-	this.x + this.wallWidth < x1 ||
-	y1 + height < this.y + this.innerDistance
-	)) {
+	const {x, y, width, height} = player;
+	if (checkCollision(player, this.pipeUp) || checkCollision(player, this.pipeDown)) {
 		flag = true;
 	}
 	if (y < -height / 2 || y > CANVAS_HEIGHT + height / 2) {
@@ -116,11 +106,9 @@ public checkPipeCollision(
 	}
 }
 public checkPipePassed(
-	x: number,
-	y: number,
-	width: number,
-	height: number
+	player: PIXI.Sprite
 ): void {
+	const {x, y, width, height} = player;
 	if (this.collisionCount > 0) {
 		return;
 	}

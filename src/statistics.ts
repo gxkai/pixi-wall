@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import {EventEmitter} from './constants';
+import {EventEmitter, MEDALS} from './constants';
 import getHowlSound from './utils/getHowlerSound';
 class Statistics extends PIXI.utils.EventEmitter{
     private panel = new PIXI.Sprite(PIXI.Texture.from('gameOver.png'));
@@ -32,14 +32,14 @@ class Statistics extends PIXI.utils.EventEmitter{
 	}
     public update = ()=> {
     	let sourceName = '';
-    	if (this._score > 0) {
-    	    sourceName = 'goldMedal';
+    	if (this._score >= 70) {
+    		sourceName =  MEDALS[2];
     	}
-    	if (this._score > 10) {
-    	    sourceName = 'bronzeMedal';
+    	if (this._score >= 20 && this._score < 40) {
+    	    sourceName =  MEDALS[1];
     	}
-    	if (this._score <= 0) {
-    	    sourceName = 'silverMedal';
+    	if (this._score >= 0 && this._score < 20) {
+    	    sourceName = MEDALS[0];
     	}
 
     	this.medal.texture = PIXI.Texture.from(`${sourceName}.png`);
@@ -56,7 +56,9 @@ class Statistics extends PIXI.utils.EventEmitter{
     	this._score --;
     }
     public clear = (): void=> {
-    	localStorage.setItem('bestScore', this._score.toString(10));
+    	const p = localStorage.getItem('bestScore')?  Number(localStorage.getItem('bestScore')): 0;
+    	const c = this._score;
+    	localStorage.setItem('bestScore', p > c ? p.toString(10): c.toString(10));
     	this._score = 0;
     }
     get score() {

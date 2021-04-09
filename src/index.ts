@@ -6,6 +6,7 @@ import Background from './background';
 import Statistics from './statistics';
 import {Howl} from 'howler';
 import getHowlSound from './utils/getHowlerSound';
+import Timing from './timing';
 (window as any) .PIXI = PIXI;
 const app = new PIXI.Application({
 	width: CANVAS_WIDTH,
@@ -24,6 +25,7 @@ class Game {
   private player!: Player;
   private wall!: Wall;
   private statistics!: Statistics;
+  private timing!: Timing;
 
   private stage!: PIXI.Container;
   private ticker!: PIXI.Ticker;
@@ -38,6 +40,7 @@ class Game {
   		this.wall = new Wall(this.stage);
   		this.player = new Player(this.stage, this.wall);
   		this.statistics= new Statistics(this.stage);
+  		this.timing = new Timing(this.stage);
   		this.wall.on(EventEmitter.PASS_THROUGH, () => {
   			this.onPassed();
   		});
@@ -52,6 +55,9 @@ class Game {
   		});
   		this.statistics.on(EventEmitter.PASS_SPEED, () => {
   			this.onSpeed();
+  		});
+  		this.timing.on(EventEmitter.TIME_OUT, () => {
+  			this.onTimeOut();
   		});
 
   		this.init();
@@ -87,22 +93,29 @@ class Game {
   	this.wall.update();
   	this.player.update();
   	this.statistics.update();
+  	this.timing.update();
   };
 
   public start = (): void => {
   	this.ticker.start();
   	this.isPlaying = true;
   	this.flySound.play();
+  	this.timing.start();
   };
 
   public reset = (): void => {
   	this.wall.reset();
   	this.player.reset();
+  	this.timing.reset();
   };
 
   private onOuScreen = (): void=> {
   	this.statistics.clear();
   	this.onCollide();
+  }
+  private onTimeOut = ():void => {
+	  this.statistics.clear();
+	  this.onCollide();
   }
   private onCollide = (): void => {
   	if (this.statistics.score === 0) {
